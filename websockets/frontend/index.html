@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <title>Websocket Client</title>
+</head>
+<body>
+  <script>
+    var ws = new WebSocket("ws://localhost:6660")
+    ws.onOpen = function (event) {
+      ws.send("Hey u up?")
+    }
+    
+    ws.onMessage = function (event) {
+      console.log(event.data);
+    }
+  </script>
+</body>
+</html>

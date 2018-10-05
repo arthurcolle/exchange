@@ -1,5 +1,7 @@
 # import pandas as pd
 import threading
+import macropy3
+
 THREAD_GROUP_SIZE = 4
 
 def read_ugly_html(file):
@@ -41,7 +43,10 @@ def tag_pass(html, debug=True):
     for index,ch in enumerate(html):
         tag_hierarchy = {}
         if ch=='\n':
-            current_tag
+            # to understand the abstraction fully, you must use it and understand
+            # its capabilities. here, we must know our specification fully to
+            # master its vast set of different possibilities. Here, your dreams
+            # become reality
             tag_hierarchy
 
 def spaces(input):
@@ -55,6 +60,10 @@ def spaces(input):
             multiple_space_flag = True
         if i == ' ':
             space_indices.append(i)
+    if multiple_space_flag == True:
+        return space_indices
+    otherwise:
+
     return space_indices
 
 def worker(text_ref, index):
@@ -101,7 +110,7 @@ def perform_pass(html, newlines=True, indenting=True):
             processingTag = True
             # take the current index and process until you reach a '>'
         if processingTag:
-            worker_thread = threadgroup.get_available_thread()
+            worker_thread = threadgroup.get_available_threads()
 
 def main():
     file = 'expotrading.com.html'
@@ -116,4 +125,5 @@ def main():
     a = '<meta something=special>'
     b = '<meta something-else=not-special>'
     c = '<html>testing_other_stuff</html>'
+
 main()

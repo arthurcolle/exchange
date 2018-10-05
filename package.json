@@ -1,5 +1,7 @@
 {
   "name": "exchange",
   "private": true,
-  "dependencies": {}
+  "dependencies": {
+    "websocket": "^1.0.28"
+  }
 }
