@@ -253,13 +253,20 @@ class ExchangeServer
     count
   end
 
- def startHttpServer(callback_opts) do
+ def startSubServers(callbackOpts={}) do
+   s1( callbackOpts[:http] )
+   s2( callbackOpts[:wss] )
+ end
+
+ # HTTP only server for non realtime messages.
+ def s1(callback_opts) do
    server = TCPServer.new @host, @port
    while session = server.accept
      @implementation(session, callback_opts)
  end
 
- def startServer(callback_opts) do
+ # WebSocket dedicated server to avoid having S1 perform any protocol switching.
+ def s2(callback_opts) do
    server = TCPServer.new @port
    while session = server.accept
      @implementation(session.gets)
@@ -294,7 +301,7 @@ class Client
 
     def todays_msg(day_atom) do
       {
-        :mon => "connection_request Mon 000000",
+        :mon => "connection_request #{}",
         :tue => "connection_request Tue 000100",
         :web => "connection_request Wed 001000",
         :thu => "connection_request Thu 000010",
@@ -303,6 +310,11 @@ class Client
         :sun => "connection_request Sun 100000"
       }
     end
+
+    defp conforms?(api_pubkey)
+      :connected_request == connection_msg.decrypt(api_pubkey)
+    end
+
     def connect(connection_msg, api_pubkey, environment=:development)
       # we expect the connection_msg argument to consist of the message
       # "connection_request" signed by ones private key. You then give me your
@@ -312,8 +324,8 @@ class Client
       # before your websocket connection to the trading engine
       # gets disconnected. this token is then to be used as one of the message
       # payload keys, with every message payload.
-      if connection_msg.decrypt(api_pubkey)=="connection_request" then
-        return Utils::generate_trading_token(Utils::identify_client(api_pubkey))
+      if conforms?(api_pubkey) then
+        Utils::generate_trading_token(Utils::identify_client(api_pubkey))
       else
       if authenticated?
         if @activity_log[]
