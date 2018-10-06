@@ -6,7 +6,7 @@ require 'websocket'
 require 'direct/sha1'
 
 
-module ServerCallbacks
+module Platform::ServerCallbacks
   class Connections
     def f(session)
       http_request = ""
@@ -69,10 +69,10 @@ end
 #   To have your value increase with respect to the network fuel, 'time', you
 #   have a few options:
 #
-#         Easy: other people swap their momentum for your momentum. The more momentum
-#               you collect, the more time is available to you. And by diversifying
-#               across different sources of momentum, you get a multiplicative effect
-#               that compounds, with jumps.
+#         Easy: other people swap their momentum for your momentum. The more
+#               momentum you collect, the more time is available to you. And by
+#               diversifying across different sources of momentum, you get a
+#               multiplicative effect that compounds, with jumps.
 #   Bit harder: help the network by running one or more origins (provides
 #               network topology manifest to users that want to connect).
 #       Medium: trading momentum based on listed public momentum feedback.
@@ -95,12 +95,11 @@ end
 #   If you ever run out of time your profile dies and have to create a new
 #   handle. Your old handle will die along with you, forever. Really. "" will
 #   become the only outgoing message that your node responds with, decreasing
-#   their momentum (sad you're dead). People will definitely
-#   connect to your node to access the network at the beginning since bootstrapping
-#   a network is pretty hard, but market dynamics will sure start to slowly form.
+#   their momentum (sad you're dead). People will def connect to your node to
+#   access the network @ the beginning since the bootstrap
+#   of a network is pretty hard, but market dynamics will slowly but surely form
 #   In principle anything can be exchanged throughout the network, but the most
-#   valuable thing to trade is
-#   time, until your moment becomes pretty valuable.
+#   valuable thing to trade is time, until your moment becomes pretty valuable.
 #
 #   Everyone has some kind of internal momentum and this is supposed to represent
 #   that - what do celebrities and startups have that everyone else doesn't?
@@ -239,34 +238,104 @@ class ExchangeServer
     @description = description
     @host = host || '127.0.0.1' # localhost
     @port = port # you have to set this explicitly
-    @max_connection_count = max_connections
-    @connected_clients = {} # maps token to a pointer
+    @maxConnectionCount = max_connections
+    @connectedClients = {} # maps token to a pointer
     @peers = []
-    @create_datetime = time.ctime()
-    @activity_log = []               # message_logs, each a string.
-    @implementation = behavior_callback # behavior_callback is a reference to a method that must receive a session and callback_args conforming to the behavior_callback passed into the constructor upon instantiatiion of this class.
+    @moment0 = time.ctime()
+    @log = []               # message_logs, each a string.
+    @implementation = behavior_callback #  behavior_callback is a reference to a
+                                        #  method that must receive a session
+                                        #  and callback_args conforming to the
+                                        #  behavior_callback passed into the
+                                        #  constructor upon instantiatiion of
+                                        #  this class.
   end
 
-  def connections(opts={with_info: false})
-    count = 0
-    @connected_clients.each {|client| count += 1 }
-    count
+  #=============================================================================
+  #   activeConnections?
+  #
+  #   ret: boolean
+  #
+  #  note: returns true if you have any connected clients, false otherwise
+  def activeConnections? then do
+    if @connectedClients then do return true else return false end
   end
 
- def startSubServers(callbackOpts={}) do
-   s1( callbackOpts[:http] )
-   s2( callbackOpts[:wss] )
+  #=============================================================================
+  #   numConnections
+  #
+  #   ret: Client objects
+  #
+  #  note: gets # of active connections
+  def numConnections then do
+    if activeConnections? then do
+      n = 0
+      @connectedClients.each {|client| n += 1 }
+      return n
+    else
+      return 0
+    end
+  end
+
+  #=============================================================================
+  #   launch(async: false, opts: {})
+  #
+  #   starts both servers so they can start receiving messages + sending
+  #   feedback in synchronous mode, i.e. the startup of one server does not
+  #   begin until the startup of the first server has finished executing, i.e.
+  #   this startup contains blocking execution.
+
+  def launch(async: async, opts: callbackOpts) do
+    if async then do launchAsync(callbackOpts) else launchSync(callbackOpts)
+  end
+
+ #=============================================================================
+ #   launchSync(both: true, whichIfNotBoth: [:http|:wss])
+ #
+ #   launchSync is "synchronous launch"
+ #
+ #   It starts both servers so they can start receiving messages + sending
+ #   feedback in synchronous mode, i.e. the startup of one server does not begin
+ #   until the startup of the first server has finished executing, i.e. this
+ #   process blocks on initialization of both servers.
+ def launchSync(opts: opts) do
+   synchronouslyLaunch(opts: opts)
  end
 
- # HTTP only server for non realtime messages.
- def s1(callback_opts) do
+ defp synchronouslyLaunch() do
+   [startHttp(callbackOpts[:http], startWss(callbackOpts[:wss]))]
+ end
+
+ #=============================================================================
+ #   launchAsync(both: true, whichIfNotBoth: [:http|:wss])
+ #
+ #   launchAsync is "asynchronous launch"
+ #
+ #   It starts both servers so they can start receiving messages + sending feedback.
+ #
+ #
+ def launchAsync(both: both, whichIfNotBoth: arrOpts) do
+   bothFlag = false
+   if arrOpts.size == 0:
+     bothFlag = true
+
+   if bothFlag == true:
+     asynchronouslyLaunch(callbackOpts)
+ end
+
+ defp asynchronouslyLaunch() do
+   [startHttp(callbackOpts[:http]), startWss(callbackOpts[:wss])]
+ end
+
+ # HTTP only server for non realtime requests.
+ def startHttp(callback_opts) do
    server = TCPServer.new @host, @port
    while session = server.accept
      @implementation(session, callback_opts)
  end
 
  # WebSocket dedicated server to avoid having S1 perform any protocol switching.
- def s2(callback_opts) do
+ def startWss(callback_opts) do
    server = TCPServer.new @port
    while session = server.accept
      @implementation(session.gets)
@@ -274,65 +343,6 @@ class ExchangeServer
  end
 end
 
-
-class Client
-    # tcp_server.rb
-    def initialize(port, description, environment=:development)
-      @host = "localhost"  # localhost
-      @port = port  # must be set explicitly
-      if environment == :development then
-        @platform_port = "6670"
-      elsif environment == :production then
-        @platform_port = "80"
-      else
-        raise ArgumentError, "unacceptable environment type.\nPlease use :development or :production."
-      end
-      @platform_host = "0.0.0.0"
-
-      @creation_datetime = time.ctime()
-      @activity_log = {}   # message_logs, maps
-                           # their handle (username)
-                           # to all the messages
-                           # you've received in
-                           # chronological order
-      @authenticated = false
-    end
-    def authenticated? return authenticated end
-
-    def todays_msg(day_atom) do
-      {
-        :mon => "connection_request #{}",
-        :tue => "connection_request Tue 000100",
-        :web => "connection_request Wed 001000",
-        :thu => "connection_request Thu 000010",
-        :fri => "connection_request Fri 010000",
-        :sat => "connection_request Sat 000001"
-        :sun => "connection_request Sun 100000"
-      }
-    end
-
-    defp conforms?(api_pubkey)
-      :connected_request == connection_msg.decrypt(api_pubkey)
-    end
-
-    def connect(connection_msg, api_pubkey, environment=:development)
-      # we expect the connection_msg argument to consist of the message
-      # "connection_request" signed by ones private key. You then give me your
-      # public API key, which I can use to decrypt the message in the backend.
-      # If the message str matches "connection_request"
-      # then I proceed, returning a hex token that you can then use for 2 hours
-      # before your websocket connection to the trading engine
-      # gets disconnected. this token is then to be used as one of the message
-      # payload keys, with every message payload.
-      if conforms?(api_pubkey) then
-        Utils::generate_trading_token(Utils::identify_client(api_pubkey))
-      else
-      if authenticated?
-        if @activity_log[]
-      else
-        Net::HTTP.get(@host + ":" + @port + "/api/v1/authenticate?id=")
-    end
-end
 
 _______________________________________________________________________________
 # server_behavior_mapping()
@@ -348,7 +358,7 @@ _______________________________________________________________________________
 # or the addition of any new server subtypes (with accompanying behavior
 # implementations ). MUST keep the implementation vs. specification of the
 # ExchangeServers distinct.
-def server_behavior_mappings()
+def serverBehaviorMappings()
   {
     connections: ServerCallbacks::Connections::f,
     orders:      ServerCallbacks::Orders::f,
@@ -364,23 +374,23 @@ _______________________________________________________________________________
 class Platform
   def initialize(mode)
     if mode == nil || mode == :basic || mode == :default then
-      supported_server_subtype_behaviors = server_behavior_mappings()
-      supported_server_subtypes          = supported_server_subtype_behaviors.keys
-      supported_server_behaviors         = supported_server_subtype_behaviors.values
-      @server_references = {}     # label -> reference.
-      supported_server_subtypes.each_with_index{ |subtype, index|
-        @server_references[subtype] = @supported_server_subtype_behaviors[index]
+      supportedServerSubtype_behaviors = serverBehaviorMappings()
+      supportedServerSubtypes          = supportedServerSubtypeBehaviors.keys
+      supportedServerBehaviors         = supportedServerSubtypeBehaviors.values
+      @serverReferences = {}     # label -> reference.
+      supportedServerSubtypes.each_with_index{ |subtype, index|
+        @serverReferences[subtype] = @supported_server_subtype_behaviors[index]
       }
       @servers = {
         :connections    => ExchangeServer(:client_connections, port: 3076 ),
         :orders         => ExchangeServer(:client_orders,      port: 3077 ),
         :services       => ExchangeServer(:internal_services,  port: 3079 )
-      # :decisions      => ExchangeServer(:decision_engine,    port: 3080 )
-      # :rules          => ExchangeServer(:rules_engine,       port: 3081 )
+       # :decisions      => ExchangeServer(:decision_engine,    port: 3080 )
+       # :rules          => ExchangeServer(:rules_engine,       port: 3081 )
        }
 
-      # Supervisor doesn't do anything, just checks that uptime is > downtime
-      # @supervisor = ExchangeServer(:supervisor, 6660)
+       # Supervisor doesn't do anything, just checks that uptime is > downtime
+       # @supervisor = ExchangeServer(:supervisor, 6660)
   end
 
   def start
