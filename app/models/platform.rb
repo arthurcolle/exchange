@@ -371,7 +371,7 @@ end
 _______________________________________________________________________________
 
 
-class Platform
+module Platform
   def initialize(mode)
     if mode == nil || mode == :basic || mode == :default then
       supportedServerSubtype_behaviors = serverBehaviorMappings()

@@ -1,16 +1,18 @@
 require 'socket'
 
-class Server()
-  def __init__(self, server_numeric_id, server_shortname)
-    @id = server_id
-    @shortname = server_shortname
-    keypair = Platform::API::Security.generateKeypair()
-    @client = Platform::Client(mothership_connect: true)
-    @ssh_private_key = keypair[ :private ]
-     @ssh_public_key = keypair[ :public  ]
-
+module Platform::Basics
+  class HttpServer
+    def initialize(opts={port: port, id: id, name: name, label: label})
+      @id = id
+      @label = label
+      @shortname = server_shortname
+      @host = '0.0.0.0'
+      @port = port
+      @tcpServer = TCPServer.new(@port)
+      # keypair = Platform::API::Security.generateKeypair()
+      # @client = Platform::Client(mothership_connect: true)
+      # @ssh_private_key = keypair[ :private ]
+      #  @ssh_public_key = keypair[ :public  ]
+    end
   end
-
-
-
-class Client()
+end
