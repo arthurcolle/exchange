@@ -43,13 +43,12 @@ class Platform
       Thread.new do
         loop do
           data = socket.gets
-          p "[#{label.to_s}] #{shortname.upcase} received: #{data}"
-
+          p "[#{@label.to_s}] #{@shortname.upcase} received: #{data}"
         end
       end
 
       loop do
-        data=gets
+        data=(gets.hash) ** 2
         socket.print("Response: #{data}")
       end
     end
@@ -58,13 +57,19 @@ end
 
 
 def getRunServer
-  server=Platform::HttpServer.new(port: 5555, id: 0, name: "Alice", label: "server")
-  server.go
+  Platform::HttpServer.new(port: 5555, id: 0, name: "Alice", label: "server").go
+end
+
+def x
+  getRunServer()
 end
 
 def getClient
-  client=Platform::HttpClient.new(5555)
+  Platform::HttpClient.new(5555).request("hi")
+end
+
+def y
+  getClient()
 end
 
 require_relative 'http_client'
-xc=getClient()
