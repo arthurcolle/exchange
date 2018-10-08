@@ -2,7 +2,7 @@ require 'net/http'
 require 'websocket'
 require 'json'
 
-class Node
+class Peer
   def initialize(id, name, label, port) do
     @id = id
     @name = name
@@ -10,7 +10,7 @@ class Node
     @tcp_server = TCPServer.new 4321 if port!=nil
   end
 
-  def run_server do
+  def run_server
     loop do
 
     end
@@ -19,4 +19,5 @@ class Node
     client.close
   end
   
-  def handle_request
+  def handle_request(request)
+  

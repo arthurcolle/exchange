@@ -1,20 +1,14 @@
 module Basic
   class Order
     attr_accessor :client
-  def initialize(product, type, price, size, secure_session_token)
-    @client = Client.lookup_by(session_token: secure_session_token)
-    @creation_datetime = Time.now
-
-    # by virtue of being either nil or true depending on the new order to be constructed from
-    # the parameters.
-    # corresponding to what the value of the second argument, 'type', which
-    # can be either atom :bid or :offer
-    if type == :bid then
-        @bidside = true
-      elsif type == :offer then
-        @offerside = true
-      end
-  end
+    def initialize(product, type, price, size, secure_session_token)
+      @client = Client.lookup_by(session_token: secure_session_token)
+      @creation_datetime = Time.now
+      # by virtue of being either nil or true depending on the new order to be constructed from
+      # the parameters corresponding to what the value of the second argument, 'type', which
+      # can be either atom :bid or :offer
+      if type == :bid then @bidside = true elsif type == :offer then @offerside = true end
+    end
 
   def bidside?
     # we do this instead of returning the quantity directly in order to constrain
@@ -29,14 +23,11 @@ class ServiceFactory()
     if opts[:intended_purpose] == nil then
       @intended_purpose = :unknown
       raise ArgumentError "What is my purpose? <pass butter>"
-    else
-      @service_functionality = functionality_callback
-    end
+    else @service_functionality = functionality_callback end
   end
 
   defp construct_service_from_behavior()
   end
-
 end
 
 class
@@ -65,8 +56,9 @@ class MatchingEngine()
   #
   defp supported_products_index() do :generic_cryptoasset end
 
-  def initialize(token, direction, )
+  def initialize(product, direction, )
     @supported_products = supported_products_index()
+    @valid_product = @supported_products.intersect(product)
     @unfilled = {
       bids: [ # this has all the individual bids and same for below with offers
         # Order(:bid, size: size, price: price)
@@ -76,16 +68,17 @@ class MatchingEngine()
       ]}
      @consolidated_market_state = {
        bids: [
-         {order_id: Utils::OrderLifecycle.order(
-           token: token,
-           direction:
-           ], offers: []}
+        # {order_id: Utils::OrderLifecycle.order(
+        #   token: token,
+        #   direction:
+        #   ], 
+       offers: []
+     }
 
-    self.log = []
-    self.speedbump = :off
-    self.midprice = (max(@market_state[:bids]) + min(@market_state[:offers]))/2
+    @log = []
+    @speedbump = :off
+    @mid = (max(@market_state[:bids]) + min(@market_state[:offers]))/2
   end
 
   def test_orders(number, spread, opts={})
-
   def
