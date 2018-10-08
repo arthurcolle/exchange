@@ -257,17 +257,16 @@ class ExchangeServer
   #   ret: boolean
   #
   #  note: returns true if you have any connected clients, false otherwise
-  def activeConnections? then do
+  def activeConnections?
     if @connectedClients then do return true else return false end
   end
 
   #=============================================================================
   #   numConnections
-  #
-  #   ret: Client objects
+  #   ret: # of actively connected Client objects
   #
   #  note: gets # of active connections
-  def numConnections then do
+  def numConnections
     if activeConnections? then do
       n = 0
       @connectedClients.each {|client| n += 1 }
@@ -285,7 +284,7 @@ class ExchangeServer
   #   begin until the startup of the first server has finished executing, i.e.
   #   this startup contains blocking execution.
 
-  def launch(async: async, opts: callbackOpts) do
+  def launch(async: async, opts: callbackOpts)
     if async then do launchAsync(callbackOpts) else launchSync(callbackOpts)
   end
 
@@ -311,9 +310,8 @@ class ExchangeServer
  #
  #   launchAsync is "asynchronous launch"
  #
- #   It starts both servers so they can start receiving messages + sending feedback.
- #
- #
+ #   Launches both servers, readying both to begin receiving messages + sending
+ #   feedback.
  def launchAsync(both: both, whichIfNotBoth: arrOpts) do
    bothFlag = false
    if arrOpts.size == 0:
@@ -332,6 +330,7 @@ class ExchangeServer
    server = TCPServer.new @host, @port
    while session = server.accept
      @implementation(session, callback_opts)
+   end
  end
 
  # WebSocket dedicated server to avoid having S1 perform any protocol switching.
@@ -345,7 +344,7 @@ end
 
 
 _______________________________________________________________________________
-# server_behavior_mapping()
+# serverBehaviorMapping()
 #
 # Creates a mapping between label/description for given server subtype behavior
 # implementation. The behavior callback that we will use to give all the Platform

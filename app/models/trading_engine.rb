@@ -1,6 +1,6 @@
-module Primitive
+module Basic
   class Order
-    attr_accessor :
+    attr_accessor :client
   def initialize(product, type, price, size, secure_session_token)
     @client = Client.lookup_by(session_token: secure_session_token)
     @creation_datetime = Time.now
@@ -65,7 +65,7 @@ class MatchingEngine()
   #
   defp supported_products_index() do :generic_cryptoasset end
 
-  def initialize()
+  def initialize(token, direction, )
     @supported_products = supported_products_index()
     @unfilled = {
       bids: [ # this has all the individual bids and same for below with offers
@@ -76,10 +76,16 @@ class MatchingEngine()
       ]}
      @consolidated_market_state = {
        bids: [
-         {order_id: Utils::OrderLifecycle.create_order(token), direction: :up || :down], offers: []}
+         {order_id: Utils::OrderLifecycle.order(
+           token: token,
+           direction:
+           ], offers: []}
 
     self.log = []
     self.speedbump = :off
     self.midprice = (max(@market_state[:bids]) + min(@market_state[:offers]))/2
   end
+
+  def test_orders(number, spread, opts={})
+
   def

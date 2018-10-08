@@ -1,5 +1,5 @@
-module Platform::Client do
-  class Impl
+module Platform do
+  class Client
       def initialize(port, description, environment=:development)
         @host = "localhost"  # localhost
         @port = port  # must be set explicitly
@@ -20,19 +20,16 @@ module Platform::Client do
                              # chronological order
         @authenticated = false
       end
+
+      def magicNumber(input)
+      end
+
       def authenticated? return authenticated end
 
       def todays_msg(day_atom) do
         dayIndex =
              #=================================================================
-             # 0     1     2     3     4     5     6       these numbers are the
-             #                                             return val for
-             #                                             DateTime.cwday, and
-             #                                             the atoms are used to
-             #                                             map to human readable
-             #                                             forms that can later
-             #                                             be internationalized
-             #=================================================================
+             # 0     1     2     3     4     5     6       DateTime.now.cwday
           [
             :sun, :mon, :tue, :wed, :thu, :fri, :sat
           ]
@@ -48,7 +45,8 @@ module Platform::Client do
             sat: "Saturday"
           ]
 
-        if daysIndex[DateTime.now.cwday] return "{msg: 'connection_request', day: '#{daysIndex[DateTime.now.cwday]}', magicBytes: '#{Platform.requestSpecialBytestream}'}" end
+        if daysIndex[DateTime.now.cwday] then do
+          return "{msg: 'connection_request', day: '#{daysIndex[DateTime.now.cwday]}', magicNumber: '#{Platform::API.magicNumber()}'}" end
 
         {
           :mon => "connection_request #{}",
@@ -75,7 +73,7 @@ module Platform::Client do
         # gets disconnected. this token is then to be used as one of the message
         # payload keys, with every message payload.
         if conforms?(api_pubkey) then
-          Utils::generate_trading_token(Utils::identify_client(api_pubkey))
+          Platform::Client::generate_trading_token(Platform::API::identify_client(api_pubkey))
         else
         if authenticated?
           if @activity_log[]
