@@ -1,0 +1,3 @@
+# For DigitalOcean API token
+DO_TOKEN=""
+# If you don't have a token, be sure to create a new token under your GitHub settings
