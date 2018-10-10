@@ -6,6 +6,6 @@ http.get({
   agent: false  // create a new agent just for this one request
 }, (res) => {
   if(res === 'okay') {
-    console.log('The message was ' + res.payload )  
+    console.log('The message was ' + res.payload )
   }
 });
